@@ -129,7 +129,7 @@ func (t *translator) readOpcodeExtended(fn *funcCompiler) error {
 					tab,
 					&ast.IndexExpr{
 						X:     &ast.SelectorExpr{X: newID("m"), Sel: newID("elements")},
-						Index: &ast.BasicLit{Kind: token.INT, Value: formatUint(elemIdx)}},
+						Index: uintLit(elemIdx)},
 					dst, src, n}}})
 
 	case 0x0d: // elem.drop
@@ -141,7 +141,7 @@ func (t *translator) readOpcodeExtended(fn *funcCompiler) error {
 			Tok: token.ASSIGN,
 			Lhs: []ast.Expr{&ast.IndexExpr{
 				X:     &ast.SelectorExpr{X: newID("m"), Sel: newID("elements")},
-				Index: &ast.BasicLit{Kind: token.INT, Value: formatUint(idx)}}},
+				Index: uintLit(idx)}},
 			Rhs: []ast.Expr{newID("nil")}})
 
 	case 0x0e: // table.copy
@@ -186,7 +186,7 @@ func (t *translator) readOpcodeExtended(fn *funcCompiler) error {
 			Fun: newID("table_grow"),
 			Args: []ast.Expr{
 				tab, val, delta,
-				&ast.BasicLit{Kind: token.INT, Value: formatUint(t.tables[idx].max)}}})
+				uintLit(t.tables[idx].max)}})
 
 	case 0x10: // table.size
 		idx, err := readLEB128(t.in)

@@ -343,7 +343,7 @@ func (t *translator) readCodeForFunction(fn *funcCompiler) error {
 						&ast.CaseClause{Body: fn.branch(target)})
 				}
 
-				caseExpr := &ast.BasicLit{Kind: token.INT, Value: formatUint(i)}
+				caseExpr := uintLit(i)
 				caseClse := sw.Body.List[id].(*ast.CaseClause)
 				caseClse.List = append(caseClse.List, caseExpr)
 			}

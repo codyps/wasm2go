@@ -62,7 +62,16 @@ func strtod_helper(s, endptr sptr_t, bitSize int) float64 {
 func strtoll_helper(s, endptr sptr_t, base int32, bitSize int) int64 {
 	m0 := memory[uptr_t(s):]
 	m1 := bytes.TrimLeft(m0, " \t\n\v\f\r")
-	m2 := bytes.TrimLeft(m1, "+-0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+	m2 := m1
+	switch {
+	case bytes.HasPrefix(m1, []byte("-")):
+		fallthrough
+	case bytes.HasPrefix(m1, []byte("+")):
+		m2 = m2[1:]
+	}
+
+	m2 = bytes.TrimLeft(m2, "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 	prefix := len(m0) - len(m1)
 	digits := len(m1) - len(m2)
 

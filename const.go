@@ -16,8 +16,7 @@ func (t *translator) constI32() (ast.Expr, error) {
 
 	t.helpers.add("i32")
 	// This prevents constant folding/propagation.
-	a := []ast.Expr{&ast.BasicLit{Kind: token.INT, Value: formatInt(v)}}
-	return &ast.CallExpr{Fun: newID("i32"), Args: a}, nil
+	return &ast.CallExpr{Fun: newID("i32"), Args: []ast.Expr{intLit(v)}}, nil
 }
 
 func (t *translator) constI64() (ast.Expr, error) {
@@ -28,8 +27,7 @@ func (t *translator) constI64() (ast.Expr, error) {
 
 	t.helpers.add("i64")
 	// This prevents constant folding/propagation.
-	a := []ast.Expr{&ast.BasicLit{Kind: token.INT, Value: formatInt(v)}}
-	return &ast.CallExpr{Fun: newID("i64"), Args: a}, nil
+	return &ast.CallExpr{Fun: newID("i64"), Args: []ast.Expr{intLit(v)}}, nil
 }
 
 func (t *translator) constF32() (ast.Expr, error) {
@@ -40,7 +38,7 @@ func (t *translator) constF32() (ast.Expr, error) {
 
 	f := math.Float32frombits(v)
 	if -math.MaxFloat32 <= f && f <= +math.MaxFloat32 && (v == 0 || f != 0) {
-		a := []ast.Expr{&ast.BasicLit{Kind: token.INT, Value: formatFloat(float64(f), 32)}}
+		a := []ast.Expr{&ast.BasicLit{Kind: token.FLOAT, Value: formatFloat(float64(f), 32)}}
 		if (f == 0 || f == 1 || f == -1) && *nanbox {
 			t.helpers.add("f32")
 			// This prevents constant folding/propagation.
@@ -52,7 +50,7 @@ func (t *translator) constF32() (ast.Expr, error) {
 	// Infinities, NaN, negative zero.
 	return &ast.CallExpr{
 		Fun:  &ast.SelectorExpr{X: newID("math"), Sel: newID("Float32frombits")},
-		Args: []ast.Expr{&ast.BasicLit{Kind: token.INT, Value: "0x" + strconv.FormatUint(uint64(v), 16)}},
+		Args: []ast.Expr{uintLit(uint64(v))},
 	}, nil
 }
 
@@ -64,7 +62,7 @@ func (t *translator) constF64() (ast.Expr, error) {
 
 	f := math.Float64frombits(v)
 	if -math.MaxFloat64 <= f && f <= +math.MaxFloat64 && (v == 0 || f != 0) {
-		a := []ast.Expr{&ast.BasicLit{Kind: token.INT, Value: formatFloat(f, 64)}}
+		a := []ast.Expr{&ast.BasicLit{Kind: token.FLOAT, Value: formatFloat(f, 64)}}
 		if (f == 0 || f == 1 || f == -1) && *nanbox {
 			t.helpers.add("f64")
 			// This prevents constant folding/propagation.
@@ -76,7 +74,7 @@ func (t *translator) constF64() (ast.Expr, error) {
 	// Infinities, NaN, negative zero.
 	return &ast.CallExpr{
 		Fun:  &ast.SelectorExpr{X: newID("math"), Sel: newID("Float64frombits")},
-		Args: []ast.Expr{&ast.BasicLit{Kind: token.INT, Value: "0x" + strconv.FormatUint(v, 16)}},
+		Args: []ast.Expr{uintLit(v)},
 	}, nil
 }
 
@@ -94,6 +92,14 @@ func (t *translator) globalGet() (ast.Expr, bool, error) {
 		expr = &ast.StarExpr{X: expr}
 	}
 	return expr, global.mutable, nil
+}
+
+func intLit(i int64) *ast.BasicLit {
+	return &ast.BasicLit{Kind: token.INT, Value: formatInt(i)}
+}
+
+func uintLit(i uint64) *ast.BasicLit {
+	return &ast.BasicLit{Kind: token.INT, Value: formatUint(i)}
 }
 
 func formatInt(i int64) string {
@@ -147,5 +153,4 @@ var (
 	literal0  = &ast.BasicLit{Kind: token.INT, Value: "0"}
 	literal1  = &ast.BasicLit{Kind: token.INT, Value: "1"}
 	literal16 = &ast.BasicLit{Kind: token.INT, Value: "16"}
-	literal63 = &ast.BasicLit{Kind: token.INT, Value: "63"}
 )

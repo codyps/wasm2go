@@ -1075,9 +1075,8 @@ func (t *translator) readDataSection() error {
 			}
 			t.dataExpr(i).X = &ast.SliceExpr{
 				X:    newID("data"),
-				Low:  &ast.BasicLit{Kind: token.INT, Value: formatInt(fileOffset)},
-				High: &ast.BasicLit{Kind: token.INT, Value: formatInt(fileOffset + size)},
-			}
+				Low:  intLit(fileOffset),
+				High: intLit(fileOffset + size)}
 			fileOffset += size
 		}
 

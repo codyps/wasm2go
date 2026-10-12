@@ -311,9 +311,7 @@ func (fn *funcCompiler) popAddr(offset uint64) ast.Expr {
 	if !fn.memory.is64 {
 		addr = convert(addr, "uint64")
 	}
-	return &ast.BinaryExpr{
-		Op: token.ADD, X: addr,
-		Y: &ast.BasicLit{Kind: token.INT, Value: formatUint(offset)}}
+	return &ast.BinaryExpr{Op: token.ADD, X: addr, Y: uintLit(offset)}
 }
 
 // Executes a type conversion, first to types[0], then to types[1] and so on.
@@ -516,7 +514,7 @@ func (fn *funcCompiler) bitHelper(name string) {
 	if typ == "i32" {
 		v &= 31
 	}
-	y = &ast.BasicLit{Kind: token.INT, Value: strconv.FormatInt(v&63, 10)}
+	y = intLit(v & 63)
 	var expr ast.Expr
 	switch op {
 	case "shl":

@@ -6,7 +6,6 @@ import (
 	"go/token"
 	"maps"
 	"slices"
-	"strconv"
 
 	"github.com/ncruces/wasm2go/internal/mangle"
 )
@@ -132,7 +131,7 @@ func (t *translator) createNewFunc() ast.Decl {
 				Fun: newID("make"),
 				Args: []ast.Expr{
 					&ast.ArrayType{Elt: newID("any")},
-					&ast.BasicLit{Kind: token.INT, Value: formatUint(tab.min)}}}}})
+					uintLit(tab.min)}}}})
 	}
 	// Create owned memory.
 	if t.memory != nil {
@@ -142,14 +141,14 @@ func (t *translator) createNewFunc() ast.Decl {
 				X:   newID("m"),
 				Sel: newID("maxMem")}},
 			Rhs: []ast.Expr{
-				&ast.BasicLit{Kind: token.INT, Value: formatUint(t.memory.max)}}})
+				uintLit(t.memory.max)}})
 		if !t.memory.imported {
 			args := []ast.Expr{
 				&ast.ArrayType{Elt: newID("byte")},
-				&ast.BasicLit{Kind: token.INT, Value: formatUint(t.memory.min << 16)},
+				uintLit(t.memory.min << 16),
 			}
 			if t.memory.shared {
-				args = append(args, &ast.BasicLit{Kind: token.INT, Value: formatUint(t.memory.max << 16)})
+				args = append(args, uintLit(t.memory.max<<16))
 			}
 			body.List = append(body.List, &ast.AssignStmt{
 				Tok: token.ASSIGN,
@@ -241,7 +240,7 @@ func (t *translator) createNewFunc() ast.Decl {
 			}
 			elems := &ast.IndexExpr{
 				X:     &ast.SelectorExpr{X: newID("m"), Sel: newID("elements")},
-				Index: &ast.BasicLit{Kind: token.INT, Value: strconv.Itoa(i)}}
+				Index: intLit(int64(i))}
 			t.helpers.add("table_init")
 			body.List = append(body.List,
 				&ast.ExprStmt{X: &ast.CallExpr{
@@ -249,7 +248,7 @@ func (t *translator) createNewFunc() ast.Decl {
 					Args: []ast.Expr{
 						tab, elems,
 						convert(elem.offset, t.tables[elem.index].stype()),
-						&ast.BasicLit{Kind: token.INT, Value: "0"},
+						literal0,
 						&ast.CallExpr{Fun: newID("len"), Args: []ast.Expr{elems}}}}},
 				&ast.AssignStmt{
 					Tok: token.ASSIGN,
@@ -270,7 +269,7 @@ func (t *translator) createNewFunc() ast.Decl {
 					t.memory.selector,
 					t.dataExpr(i),
 					convert(seg.offset, t.memory.utype()),
-					&ast.BasicLit{Kind: token.INT, Value: "0"},
+					literal0,
 					&ast.CallExpr{Fun: newID("len"), Args: []ast.Expr{t.dataExpr(i)}}}}})
 	}
 	// Create and initialize owned globals.
@@ -534,8 +533,8 @@ func (t *translator) createDylinkConstants() ast.Decl {
 		Body: &ast.BlockStmt{
 			List: []ast.Stmt{&ast.ReturnStmt{
 				Results: []ast.Expr{
-					&ast.BasicLit{Kind: token.INT, Value: formatInt(t.dylink.memorySize)},
-					&ast.BasicLit{Kind: token.INT, Value: formatInt(1 << t.dylink.memoryAlignment)},
-					&ast.BasicLit{Kind: token.INT, Value: formatInt(t.dylink.tableSize)},
-					&ast.BasicLit{Kind: token.INT, Value: formatInt(1 << t.dylink.tableAlignment)}}}}}}
+					intLit(t.dylink.memorySize),
+					intLit(1 << t.dylink.memoryAlignment),
+					intLit(t.dylink.tableSize),
+					intLit(1 << t.dylink.tableAlignment)}}}}}
 }
