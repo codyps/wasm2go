@@ -3,6 +3,7 @@
 package sjlj
 
 func (m *Module) __throw_longjmp() { panic("emscripten_longjmp") }
+
 func (m *Module) __catch_longjmp(sp int32) {
 	if r := recover(); r == "emscripten_longjmp" {
 		*m.X__stack_pointer() = sp

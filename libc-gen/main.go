@@ -127,6 +127,14 @@ func main() {
 		}
 	}
 
+	invokeSigs := set[string]{}
+	for i, name := range funcs {
+		if sig, ok := parseInvokeSig(name); ok {
+			invokeSigs.add(sig)
+			funcs[i] = "_catch_longjmp"
+		}
+	}
+
 	queue := append([]string(nil), funcs...)
 	visited := make(map[string]bool)
 	var keep []*ast.FuncDecl
@@ -245,15 +253,6 @@ func main() {
 		outAST.Decls = append(outAST.Decls, fd)
 	}
 
-	invokeSigs := set[string]{}
-	for _, name := range funcs {
-		if sig, ok := parseInvokeSig(name); ok {
-			invokeSigs.add(sig)
-		}
-	}
-	if len(invokeSigs) > 0 {
-		outAST.Decls = append(outAST.Decls, generateCatch(fset))
-	}
 	for _, sig := range slices.Sorted(maps.Keys(invokeSigs)) {
 		outAST.Decls = append(outAST.Decls, generateInvoke(fset, sig))
 	}
@@ -455,25 +454,6 @@ func generateInvoke(fset *token.FileSet, sig string) *ast.FuncDecl {
 		}`,
 		sig, strings.Join(params, ","), retType,
 		retKeyword, strings.Join(tableParams, ","), retType, strings.Join(callArgs, ","))
-
-	f, err := parser.ParseFile(fset, "", src, 0)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return f.Decls[0].(*ast.FuncDecl)
-}
-
-func generateCatch(fset *token.FileSet) *ast.FuncDecl {
-	src := fmt.Sprintf(`
-		package p
-		func (m *Module) __catch_longjmp(sp %s) {
-			if r := recover(); r == "emscripten_longjmp" {
-				*m.X__stack_pointer() = sp
-			} else if r != nil {
-				panic(r)
-			}
-		}`,
-		invokeTypes['p'])
 
 	f, err := parser.ParseFile(fset, "", src, 0)
 	if err != nil {

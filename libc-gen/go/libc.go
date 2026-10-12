@@ -2,7 +2,10 @@ package libc
 
 import "encoding/binary"
 
-var memory []byte
+var (
+	memory []byte
+	m      struct{ X__stack_pointer func() *sptr_t }
+)
 
 type (
 	sptr_t int32   // int32  or int64
